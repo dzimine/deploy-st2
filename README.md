@@ -12,6 +12,9 @@ Here I describe some details of this reference deployment  with examples of conf
 
 ## Big Picture
 
+<img src="https://docs.google.com/drawings/d/1B_kgwbWfo0ByRELkBzvP8mqODq12OjSiyhW8A6mjG3Y/pub?w=960&amp;h=720">
+
+TODO: short word description
 
 ### External dependencies:
 
