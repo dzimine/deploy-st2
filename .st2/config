@@ -1,0 +1,20 @@
+
+[api]
+url = https://10.0.2.15:9101
+
+[general]
+base_url = https://localhost
+api_version = v1
+cacert =
+silence_ssl_warnings = True
+
+[cli]
+debug = False
+cache_token = False
+
+[credentials]
+username = admin
+password = 6ghOpQQxGwjn9auZJqY2pe8mRlASpa2Y
+
+[auth]
+url = https://10.0.2.15:9100
