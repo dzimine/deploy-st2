@@ -1,7 +1,7 @@
 # StackStorm Single Host Deployment
 
 
-**Disclamer:** *This is an un-official, unfinished, Ubuntu-14.04 based guide. Will be [eventually] translated to the proper docs.*
+**Disclaimer:** *This is an un-official, unfinished, Ubuntu-14.04 based guide. Will be [eventually] translated to the proper docs.*
 
 
 StackStorm's single host reference deployment is delivered by [All-In-One installer aka AIO](https://docs.stackstorm.com/latest/install/all_in_one.html).
@@ -22,17 +22,17 @@ TODO: short word description
 * MongoDB 2.4 (AIO installs as a docker image)
 * gunicorn or uwsgi
 * PostgreSQL
-* nodejs, npm, hubot (optional, required for Chatops) 
+* nodejs, npm, hubot (optional, required for Chatops)
 * Reddis or Zookeeper (optional, required for Policies)
 * LDAP (optional, for LDAP based authentication)
 
 
 ## Frontent
-1. nginx provides SSL termination, redirects HTTP to HTTPS, serves WebUI as static HTML, and proxies REST API endpoints to st2* web services. Configurations [/etc/nginx/](./etc/nginx/), 
+1. nginx provides SSL termination, redirects HTTP to HTTPS, serves WebUI as static HTML, and proxies REST API endpoints to st2* web services. Configurations [/etc/nginx/](./etc/nginx/),
 or [see puppet](https://github.com/StackStorm/st2workroom/blob/master/modules/profile/manifests/st2server.pp)
 
-    CORS: Currently, api and auth endpoints are served off port 9100 and 9101. As these endpoints are accessed from a browser, CORS need to be properly handled on nginx. You can see quite a bit of settings to handle brower's pre-flight OPTION requests. ***Coming soon:*** we are moving to serving everything off a single HTTPS port.
-    
+    CORS: Currently, `api` and `auth` endpoints are served off port 9100 and 9101. As these endpoints are accessed from a browser, CORS need to be properly handled on nginx. You can see quite a bit of settings to handle brower's pre-flight OPTION requests. ***Coming soon:*** we are moving to serving everything off a single HTTPS port.
+
     SSL certificate is at `/etc/ssl/st2/` (`st2.crt`, `st2.key`). The certificate commonname or alt names shall match the external address used to access StackStorm on the box.
 
 2. StackStorm WebUI (st2web and flow) is served as static HTML. Nginx configuration at [/etc/nginx/sites-enabled/st2webui.conf](./etc/nginx/sites-enabled/st2webui.conf). Static content is under `/opt/stackstorm/static/webui/`. The [config.js](./opt/stackstorm/static/webui/config.js) there defines the API endponts URL according to [rfc1808](http://tools.ietf.org/html/rfc1808.html), as well as the relative path to flow.
@@ -49,19 +49,20 @@ or [see puppet](https://github.com/StackStorm/st2workroom/blob/master/modules/pr
 * Most st2* components are connected to RabbitMQ and MongoDB; the connections are configured in `/etc/st2.conf` ([see docs](https://docs.stackstorm.com/config/config.html#configure-mongodb)).
 * Other common configurations in `/etc/st2.conf`. Note that some parameters are used in "debug" mode and not relevant when run under nginx/gunicorn.
 * upstart scripts are in [/etc/init](./etc/init) - ([see puppet](https://github.com/StackStorm/puppet-st2/tree/master/files/etc/init.d))
-* [`st2ctl`](https://github.com/StackStorm/st2/blob/v1.2/tools/st2ctl) is a convinience command to operate StackStorm.
+* [`st2ctl`](https://github.com/StackStorm/st2/blob/v1.2/tools/st2ctl) is a convenience command to operate StackStorm.
     * NOTE: when you run `st2ctl status` and see `st2web is not running` - don't worry: it's not used in the ref deployment as WebUI and Flow are served by nginx.
 
 
-1. ### [st2installer](https://github.com/StackStorm/st2installer) 
+1. ### [st2installer](https://github.com/StackStorm/st2installer)
     st2installer is a small Pecan app that serves a graphical setup for All-In-One installer over HTTPS. Only used by all-in-one installer.
 
 2. ### [st2auth](https://github.com/StackStorm/st2/tree/master/st2auth)
 st2auth is an authentication Web service. It is a Pecan app, running behind nginx on port 9100, with gunicorn (recommended, will update soon) or uwsgi (current).
     * nginx configuration in [/etc/nginx/sites-enabled/st2auth.conf](./etc/nginx/sites-enabled/st2auth.conf) and [/etc/nginx/uwsgi_params](./etc/nginx/uwsgi_params)
     * uwsgi upstart script [/etc/init/st2auth.conf](./etc/init/st2auth.conf) - ([puppet template](https://github.com/StackStorm/st2workroom/blob/master/modules/adapter/templates/st2_uwsgi_init/init.conf.erb))
-    * Ref deployment uses PAM auth backend; [st2-auth-backend-pam](https://github.com/StackStorm/st2-auth-backend-pam) needs to be installed from [downloads.stackstorm.net/st2community](https://downloads.stackstorm.net/st2community/apt/jessie/auth_backends/) ([puppet](https://github.com/StackStorm/puppet-st2/blob/master/manifests/auth/pam.pp)); 
-    * the configuration is in [auth] section of [/etc/st2/st2.conf](./etc/st2/st2.conf). Note that `use_ssl=False` is because nginx is doing SSL termination, so st2auth doesn't have to. 
+    * the configuration is in [auth] section of [/etc/st2/st2.conf](./etc/st2/st2.conf). Note that `use_ssl=False` is because nginx is doing SSL termination, so st2auth doesn't have to.
+    * Reference deployment uses PAM auth backend; [st2-auth-backend-pam](https://github.com/StackStorm/st2-auth-backend-pam) needs to be installed from [downloads.stackstorm.net/st2community](https://downloads.stackstorm.net/st2community/apt/jessie/auth_backends/) ([puppet](https://github.com/StackStorm/puppet-st2/blob/master/manifests/auth/pam.pp));
+    * With PAM auth backend, any local user with a password can access StackStorm. However, if RBAC is enabled, you'll see little. To give user an access to StackStorm, go to /opt/stackstorm/rbac/assigments and create an assignment for your newly created user, than apply it by running `st2-apply-rbac-definitions` command - [see details in docs](https://docs.stackstorm.com/rbac.html#applying-rbac-definitions)
     * to set up a different authentication backends, [follow docs](https://docs.stackstorm.com/authentication.html)
 
 3. ### [st2api](https://github.com/StackStorm/st2/tree/master/st2api)
@@ -87,13 +88,43 @@ st2actionrunner runs action plugins from `/opt/stackstorm/packs` via a [variety 
 A service for tracking long-running workflow executions. Deployed as part of st2actions package. Calls Mistral API endpoint.
 
 8. ### st2notifier
-A service for providing [notifications](https://docs.stackstorm.com/chatops/notifications.html) that fires `core.st2.generic.notifytrigger` on action completions. Deployed as part of `st2actions` package. 
+A service for providing [notifications](https://docs.stackstorm.com/chatops/notifications.html) that fires `core.st2.generic.notifytrigger` on action completions. Deployed as part of `st2actions` package.
+
+9. ### st2client
+CLI client. Works against the st2 API, installed on the box for convenience, can be installed remotely.Obviously requires access to `api` and `auth` endpoints. Details in the [docs](https://docs.stackstorm.com/cli.html).
+    * `ST2_API_URL` and `ST2_AUTH_URL` env variables used to specify api and auth endpoints. AIO installer sets them up in /etc/profiles.d/st2.sh.
+    * * ~/.st2/conf can be used to set up default URL, silence SSL warnings for self-signed certificates, overrides of api and auth endpoints, keeping credentials if desired, etc.
 
 ## Mistral
-TODO: coming...
+Mistral workflow service is running workflows. It consists of the three components: api, executor, and worker, as well as [`st2mistral`](https://github.com/StackStorm/st2mistral) - a proxy plugin that executor uses to call StackStorm actions. Here is how it works:
+
+<img src="https://docs.google.com/drawings/d/1JfGtD1_OoN08FiSDG4o4MBHFxYroLZhn47D59pKlvHY/pub?w=494&amp;h=264">
+
+1. [mistral runner](https://docs.stackstorm.com/runners.html#mistral-runner-mistral-v2) from `st2actionrunner` requests mistral `api` to create a workflow and start a workflow execution.
+2. `api` calls engine to start workflow execution
+3. `engine` computes the next tasks and passes it to an `executor` to call appropriate actions.
+4. executor passes all requests to StackStorm actions to `st2mistral` proxy action.
+5. `st2mistral` action calls `st2api` to run an action
+6. `st2resultstracker` queries mistral `api` for workflow execution progress.
+
+* Configurations are in [`/etc/mistral/mistral.conf`](./etc/mistral/mistral.conf). Mistral uses RabbitMQ for communication between components, and PostgreSQL DB to keep the state of the workflow.
+* Deployed to `/opt/openstack/mistral` from [StackStorm's fork](https://github.com/StackStorm/mistral/tree/st2-1.2.0) on github.
+* runs with it's own `.venv` virtualenv with it's own set of pip dependencies, per [requirements.txt](https://github.com/StackStorm/mistral/blob/st2-1.2.0/requirements.txt). `st2mistral` must be also installed into the same virtualenv. See [puppet](https://github.com/StackStorm/puppet-st2/blob/master/manifests/profile/mistral.pp) for details.
+* By default, Mistral api is running via SimpleHTTPservice. For any serious workload, separate `mistral-api` under gunicorn; use this sample upstart script [`mistral-api.conf`](./etc/init/mistral-api.conf) ***Coming soon:*** api under gunicorn will be the default.
+* Mistral CLI client is also installed to help debugging, try `mistral --help`.
 
 ## Chatops
-TODO: coming...
+
+* Preferably, get [stackstorm/hubot](https://github.com/stackstorm/docker-hubot) docker with all pre-installed, see [puppet](https://github.com/StackStorm/st2workroom/blob/master/modules/profile/manifests/hubot/docker.pp).
+* Alternatively, [follow docs](https://docs.stackstorm.com/chatops/chatops.html#chatops-configuration) or [see puppet](https://github.com/StackStorm/st2workroom/blob/master/modules/profile/manifests/hubot/legacy.pp):
+	* install hubot and [hubot-stackstorm](https://github.com/stackstorm/hubot-stackstorm) - requires nodjs, npm, installed to /opt/stackstorm/hubot/hubot
+	* upstart script /etc/init.d/hubot
+	* hubot configurations under /opt/hubot/hubot/hubot.env
+
+```
+TODO: add Chatops wiring details
+```
+
 
 
 
