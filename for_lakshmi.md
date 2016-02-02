@@ -8,7 +8,7 @@
 ```sudo apt-get install -y wget apache2-utils apt-transport-https sysvinit-utils```
 
 [?] Allow localhost connections to rabbitmq:
-```echo '[{rabbit, [{disk_free_limit, 10}, {loopback_users, []}]}].' | sudo tee /etc/rabbitmq/rabbitmq.config```
+`echo '[{rabbit, [{disk_free_limit, 10}, {loopback_users, []}]}].' | sudo tee /etc/rabbitmq/rabbitmq.config`
 
 I am -1 on polluting the guide with this and similar corner-case hacks. It is obvious We can do KB, references to rabbitMQ, footnotes, and script
 
