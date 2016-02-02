@@ -5,7 +5,7 @@
 [!] st2chatops as a package
 
 [?]  For each of this, specify why it must be installed by the user (as opposed to by package dependency) and why each of them is needed (may be have it when 
-```sudo apt-get install -y wget apache2-utils apt-transport-https sysvinit-utils```
+`sudo apt-get install -y wget apache2-utils apt-transport-https sysvinit-utils`
 
 [?] Allow localhost connections to rabbitmq:
 `echo '[{rabbit, [{disk_free_limit, 10}, {loopback_users, []}]}].' | sudo tee /etc/rabbitmq/rabbitmq.config`
